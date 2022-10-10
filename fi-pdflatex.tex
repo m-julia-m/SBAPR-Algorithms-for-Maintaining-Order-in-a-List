@@ -57,12 +57,12 @@
     university  = mu,
     faculty     = fi,
     type        = bc,
-    department  = Department of Machine Learning and Data Processing,
-    author      = Jane Doe,
+    department  = Department of Computer Science,
+    author      = Júlia Michálková,
     gender      = f,
-    advisor     = {Prof. RNDr. John Smith, CSc.},
-    title       = {The Proof of P = NP},
-    TeXtitle    = {The Proof of $\mathsf{P}=\mathsf{NP}$},
+    advisor     = {Prof. RNDr. Ivana Černá, CSc.},
+    title       = {Algorithms for Maintaining Order in a List},
+    TeXtitle    = {Algorithms for Maintaining Order in a List},
     keywords    = {keyword1, keyword2, ...},
     TeXkeywords = {keyword1, keyword2, \ldots},
     abstract    = {%
@@ -124,34 +124,71 @@
 \markright{\textsc{Introduction}}
 \addcontentsline{toc}{chapter}{Introduction}
 
-Theses are rumoured to be \enquote{the capstones of education}, so
-I decided to write one of my own. If all goes well, I will soon
-have a diploma under my belt. Wish me luck!
+\section{The ordered file maintenance problem}
+The \textit{Ordered File Maintenance problem} is to maintain an array of N elements in O(N)
+space by having only O(1) size empty array-slot “gaps” between elements. [TODO citation Erik Demaine lec 20.]
 
-\begin{otherlanguage}{czech}
-Říká se, že závěrečné práce jsou \enquote{vyvrcholením studia}
-a tak jsem se rozhodl jednu také napsat. Pokud vše půjde podle
-plánu, odnesu si na konci semestru diplom. Držte mi palce!
-\end{otherlanguage}
+\section{The order-maintenance problem}
+The \textit{Order-Maintenance Problem} is to maintain a total order subject to the
+following operations:\\
 
-\begin{otherlanguage}{slovak}
-Hovorí sa, že záverečné práce sú \enquote{vyvrcholením štúdia}
-a tak som sa rozhodol jednu tiež napísať. Ak všetko pôjde podľa
-plánu, odnesiem si na konci semestra diplom. Držte mi palce!
-\end{otherlanguage}
+1. \textit{Insert (X, Y )}: Insert a new element \textit{Y} immediately after element \textit{X} in the
+total order.
 
-\begin{otherlanguage}{german}
-Man munkelt, dass die Dissertation \enquote{die Krönung der
-Ausbildung} ist. Deshalb habe ich mich beschlossen meine eigene
-zu schreiben. Wenn alles gut geht, bekomme ich bald ein Diplom.
-Wünsch mir Glück!
-\end{otherlanguage}
+2. \textit{(Delete (X)}: Remove an element \textit{X} from the total order.
 
-\begin{otherlanguage}{russian}\textrussian{%
-Говорят, что тезис -- это \enquote{кульминация обучения}. Поэтому
-я и решил написать собственный тезис. Если всё сработает по плану,
-я скоро получу диплом. Желайте мне удачи!
-}\end{otherlanguage}
+3. \textit{Order (X, Y )}: Determine whether \textit{X} precedes \textit{Y} in the total order.
+
+We call any such data structure an order data structure. [TODO citation from Two Simplified Algorithms for Maintaining
+Order in a List]
+
+\section{List-labeling problem}
+The list-labeling problem  involves maintaining explicit (e.g., integer) labels in each node of a linked list. These labels should increase monotonically over the list. The data structure needs to support insertion between two labels and deletion of a label. [TODO citation lec8]
+Note that order(X, Y) can be implemented simply by comparing label(X) and label(Y) so that any solution to the list-labeling problem immediately gives one to the order-maintenance problem. [TODO citation wiki/Order-maintenance_problem#List_labeling]
+
+
+\chapter{Data structure A}
+
+\section{Structure description}
+
+Data structure A keeps inserted elements in a list, where each element has been assigned a tag from [0, \textit{u}].
+
+Let \textit{n} be the current number of elements in the data structure.
+
+Let \textit{u} be the tag universe size. The tag universe size is a power of 2.
+
+The \textit{density} of a \textit{tag range} is the fraction of occupied tags in that tag range.\\
+
+\textbf{Analogy to binary tree}\\
+
+The bits of the tags implicitly form a binary tree which is the \textit{trie} of the bit strings. The trie has depth log(\textit{u}). Each root-to-leaf path in the trie corresponds to the bits of the tag of the element stored in the reached leaf node. This trie is called the \textit{virtual tree}.\\
+When new elements are inserted into the list, they are assigned new tags, which translates to inserting new leaf nodes into the virtual tree.\\
+Each internal node of the virtual tree identifies a sublist of the linked list elements that are stored in leaf nodes of the subtree rooted in given internal node. Each leaf node has log u such enclosing tag ranges.\\
+
+\section{Insert operation \textit{Insert(X, Y)}}
+
+When we insert an element \textit{Y} immediately after element \textit{X}, we are free to choose any tag from the range \textit{(X.tag, Z.tag)}, where \textit{Z} is the first element in the linked list right after \textit{X}.
+
+If \textit{X} and \textit{Z} occupy adjacent leaves (their tags differ by 1), there are no available tags for the new element and we need to relabel a sublist of the linked list to make room for the new element.\\
+
+\textbf{Tag-range Relabeling Algorithm}\\
+
+When relabeling while inserting element \textit{Y} between \textit{X} a \textit{Z}, we examine the enclosing tag ranges of X, going from smaller tag ranges to larger tag ranges, until we find the smallest tag range not in \textit{overflow}. The tag ranges increase in size geometrically. We calculate the density by traversing the elements within a certain tag range (instead of walking up the implicit tree).
+
+A tag range is in \textit{overflow}, if its density is above the \textit{overflow threshold}, which is defined as follows: 
+Let T be a constant between 1 and 2. We calculate the threshold individually for each range based on its size:
+
+1. For a leaf of the tree, which is a range of size $2^0 = 1$, the overflow threshold is defined as $T_0 = 1$.
+
+2. Otherwise, for ranges of size $2^i$, $T_i = T_{i-1} / T = T^{-1}$.
+
+We only relabel the smallest range not in overflow, even though larger tag ranges might be in overflow.
+
++ Indirection => constant-time amortized solution to order-maintenance problem.
+
+\chapter{Data structure B}
+
+\chapter{Data structure C}
 
 \chapter{Using lightweight markup}
 \shorthandoff{-}
