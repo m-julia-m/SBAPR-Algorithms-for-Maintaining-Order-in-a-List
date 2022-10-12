@@ -147,22 +147,22 @@ The list-labeling problem  involves maintaining explicit (e.g., integer) labels 
 Note that order(X, Y) can be implemented simply by comparing label(X) and label(Y) so that any solution to the list-labeling problem immediately gives one to the order-maintenance problem. [TODO citation wiki/Order-maintenance_problem#List_labeling]
 
 
-\chapter{Data structure A}
+\chapter{Solution A}
 
 \section{Structure description}
 
-Data structure A keeps inserted elements in a list, where each element has been assigned a tag from [0, \textit{u}].
+Solution A keeps inserted elements in a linked list, where each element has been assigned an integer tag from range [0, \textit{u}]. The tag values are strictly increasing over the list.
 
-Let \textit{n} be the current number of elements in the data structure.
+Let \textit{n} be the current number of elements in the linked list.
 
 Let \textit{u} be the tag universe size. The tag universe size is a power of 2.
 
-The \textit{density} of a \textit{tag range} is the fraction of occupied tags in that tag range.\\
+The \textit{density} of a \textit{tag range} is the fraction of occupied (already assigned) tags from the tag range.\\
 
-\textbf{Analogy to binary tree}\\
+\textbf{Analogy with binary tree}\\
 
-The bits of the tags implicitly form a binary tree which is the \textit{trie} of the bit strings. The trie has depth log(\textit{u}). Each root-to-leaf path in the trie corresponds to the bits of the tag of the element stored in the reached leaf node. This trie is called the \textit{virtual tree}.\\
-When new elements are inserted into the list, they are assigned new tags, which translates to inserting new leaf nodes into the virtual tree.\\
+The bits of the tags implicitly form a binary tree, which is the \textit{trie} of the bit strings. The trie has depth log(\textit{u}). Each root-to-leaf path in the trie corresponds to the bits of the tag of the reached element. This trie is called the \textit{virtual tree}.\\
+When new elements are inserted into the linked list, they are assigned new tags, which translates to inserting new leaf nodes into the virtual tree.\\
 Each internal node of the virtual tree identifies a sublist of the linked list elements that are stored in leaf nodes of the subtree rooted in given internal node. Each leaf node has log u such enclosing tag ranges.\\
 
 \section{Insert operation \textit{Insert(X, Y)}}
@@ -184,11 +184,19 @@ Let T be a constant between 1 and 2. We calculate the threshold individually for
 
 We only relabel the smallest range not in overflow, even though larger tag ranges might be in overflow.
 
+\section{Delete operation \textit{Delete(X)}}
+
+When deleting an element form the linked list, there are no excess steps on top of the standard delete operation in a linked list.
+
+\section{Order operation \textit{Order(X, Y)}}
+Since tag values increase as we traverse the linked list, we simply compare the tags of elements X and Y. If X has a lower tag than Y, then X precedes Y.
+
+\section{Indirection}
 + Indirection => constant-time amortized solution to order-maintenance problem.
 
-\chapter{Data structure B}
+\chapter{Solution B}
 
-\chapter{Data structure C}
+\chapter{Solution C}
 
 \chapter{Using lightweight markup}
 \shorthandoff{-}
