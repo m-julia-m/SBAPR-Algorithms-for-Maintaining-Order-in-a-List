@@ -1,0 +1,78 @@
+from email import header
+from random import randrange
+
+
+class DoublyLinkedNode:
+    def __init__(self, tag, value = "N", prev = None, next = None):
+        self.tag = tag
+        self.value = value
+        self.prev = prev
+        self.next = next
+    
+    def get_tag_binary_string(self):
+        return "{0:b}".format(self.tag)
+    
+    def __repr__(self) -> str:
+        return "tag: " + self.get_tag_binary_string() + "\tvalue: " + self.value
+
+class DoublyLinkedList:
+    def __init__(self, x):
+        self.head = x
+        self.tail = x
+        self.n = 0 # number of elements
+    
+    def insert(self, x, y):
+        """Insert element y right after element x."""
+        
+        n += 1
+        
+        y.prev = x
+        y.next = x.next
+        x.next = y
+        if y.next is not None:
+            y.next.prev = y
+        
+        # update tail, we can never insert new head
+        if y.next is None:
+            self.tail = y
+    
+    def __repr__(self) -> str:
+        text = "list start: \n"
+        node = self.head
+
+        while node is not None:
+            text = text + node + "\n"
+        
+        return text
+
+class SolutionA:
+    def __init__(self, u = 2^8, t = 1.5):
+        self.u = u # tag universe
+        self.t = t # overflow threshold constant
+        self.linked_list = DoublyLinkedList()
+
+    
+    def insert(self, x, y):
+        """Insert element y right after element x."""
+        
+        new_element_tag_range_min_bound = x.tag
+        new_element_tag_range_max_bound = x.next.tag if x.next is not None else self.u
+
+        if (new_element_tag_range_min_bound - new_element_tag_range_max_bound <= 1):
+            # no available tag -> rebalance
+            y.tag = x.tag
+            self.linked_list.insert(x, y)
+            self.rebalance_upon(x)
+
+        else:
+            # use any tag from the range (excluding the bounds)
+            y.tag = randrange(new_element_tag_range_min_bound + 1, new_element_tag_range_max_bound)
+            self.linked_list.insert(x, y)
+    
+    def rebalance_upon(self, x):
+        # find smallest enclosing range of x not in overflow
+        q, r = divmod(x.tag, 2)
+        
+
+
+
