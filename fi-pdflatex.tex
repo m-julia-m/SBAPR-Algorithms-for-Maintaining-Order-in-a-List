@@ -124,6 +124,8 @@
 \markright{\textsc{Introduction}}
 \addcontentsline{toc}{chapter}{Introduction}
 
+\chapter{Related problems}
+
 \section{The ordered file maintenance problem}
 The \textit{Ordered File Maintenance problem} is to maintain an array of N elements in O(N)
 space by having only O(1) size empty array-slot “gaps” between elements. [TODO citation Erik Demaine lec 20.]
@@ -140,7 +142,10 @@ total order.
 3. \textit{Order (X, Y )}: Determine whether \textit{X} precedes \textit{Y} in the total order.
 
 We call any such data structure an order data structure. [TODO citation from Two Simplified Algorithms for Maintaining
-Order in a List]
+Order in a List]\\
+
+Notice that the Insert operation is not capable of inserting elements into an empty structure. The Order-maintenance problem is only concerned with maintaining a non-empty set of elements.
+
 
 \section{List-labeling problem}
 The list-labeling problem  involves maintaining explicit (e.g., integer) labels in each node of a linked list. These labels should increase monotonically over the list. The data structure needs to support insertion between two labels and deletion of a label. [TODO citation lec8]
@@ -149,15 +154,20 @@ Note that order(X, Y) can be implemented simply by comparing label(X) and label(
 
 \chapter{Solution A}
 
-\section{Structure description}
+From  [TODO citate Two Simplified Algorithms for Maintaining Order in a List by Bender, Cole,...] with implementation details inspired by [TODO citate https://en.wikipedia.org/wiki/Order-maintenance_problem].
 
-Solution A keeps inserted elements in a linked list, where each element has been assigned an integer tag from range [0, \textit{u}]. The tag values are strictly increasing over the list.
+\section{Solution A without indirection}
 
-Let \textit{n} be the current number of elements in the linked list.
+\subsection{Data structure description}
 
-Let \textit{u} be the tag universe size. The tag universe size is a power of 2.
+Solution A uses list-labeling to solve the order-maintenance problem.
+Inserted elements are kept in a linked list, where each element has been assigned an integer \textit{tag}. The tag values are strictly increasing over the list.\\
 
-The \textit{density} of a \textit{tag range} is the fraction of occupied (already assigned) tags from the tag range.\\
+Let \textit{n} be the current number of elements in the linked list.\\
+
+Let \textit{N} be the number of elements in the linked list at the time of the last \textit{rebuild}. The data structure is rebuilt whenever the invariant $N/2 <= n <= 2N$ is violated.\\
+
+Let \textit{u} be the tag universe size and a power of 2. Elements have tags from the range $[0, \textit{u}]$. Whenever we rebuild the structure, we choose a new \textit{u} that works for any \textit{n} from the range $(N/2, 2N)$.\\
 
 \textbf{Analogy with binary tree}\\
 
@@ -165,17 +175,22 @@ The bits of the tags implicitly form a binary tree, which is the \textit{trie} o
 When new elements are inserted into the linked list, they are assigned new tags, which translates to inserting new leaf nodes into the virtual tree.\\
 Each internal node of the virtual tree identifies a sublist of the linked list elements that are stored in leaf nodes of the subtree rooted in given internal node. Each leaf node has log u such enclosing tag ranges.\\
 
-\section{Insert operation \textit{Insert(X, Y)}}
+\subsection{Insert operation \textit{Insert(X, Y)}}
 
 When we insert an element \textit{Y} immediately after element \textit{X}, we are free to choose any tag from the range \textit{(X.tag, Z.tag)}, where \textit{Z} is the first element in the linked list right after \textit{X}.
 
 If \textit{X} and \textit{Z} occupy adjacent leaves (their tags differ by 1), there are no available tags for the new element and we need to relabel a sublist of the linked list to make room for the new element.\\
 
+After the insert operation is complete, we rebuild the structure if there are too many elements (see [TODO link section DATA Structure Description]).\\
+
 \textbf{Tag-range Relabeling Algorithm}\\
 
 When relabeling while inserting element \textit{Y} between \textit{X} a \textit{Z}, we examine the enclosing tag ranges of X, going from smaller tag ranges to larger tag ranges, until we find the smallest tag range not in \textit{overflow}. The tag ranges increase in size geometrically. We calculate the density by traversing the elements within a certain tag range (instead of walking up the implicit tree).
 
-A tag range is in \textit{overflow}, if its density is above the \textit{overflow threshold}, which is defined as follows: 
+Let the \textit{density} of a \textit{tag range} be the fraction of occupied (already assigned) tags from the tag range.\\
+
+A tag range is in \textit{overflow}, if its density is above the \textit{overflow threshold}, which is defined as follows:\\
+
 Let T be a constant between 1 and 2. We calculate the threshold individually for each range based on its size:
 
 1. For a leaf of the tree, which is a range of size $2^0 = 1$, the overflow threshold is defined as $T_0 = 1$.
@@ -184,15 +199,54 @@ Let T be a constant between 1 and 2. We calculate the threshold individually for
 
 We only relabel the smallest range not in overflow, even though larger tag ranges might be in overflow.
 
-\section{Delete operation \textit{Delete(X)}}
+\subsection{Delete operation \textit{Delete(X)}}
 
-When deleting an element form the linked list, there are no excess steps on top of the standard delete operation in a linked list.
+When deleting an element form the linked list, we perform the standard delete operation in a linked list we also check.
 
-\section{Order operation \textit{Order(X, Y)}}
-Since tag values increase as we traverse the linked list, we simply compare the tags of elements X and Y. If X has a lower tag than Y, then X precedes Y.
+After the delete operation is complete, we rebuild the structure if the number of elements is too small (see [TODO link section DATA Structure Description]).
 
-\section{Indirection}
-+ Indirection => constant-time amortized solution to order-maintenance problem.
+\subsection{Order operation \textit{Order(X, Y)}}
+When deciding whether X precedes Y, since tag values increase as we traverse the linked list, we simply compare the tags of elements X and Y.\\
+If X has a lower tag than Y, then X precedes Y.\\
+If X has a higher tag than Y, then X does not precede Y.
+
+\section{Solution A with indirection}
+
+\subsection{Data structure description}
+
+The solution A as described above takes $\mathcal{O}(\log{}n)$ amortized time to update and $\mathcal{O}(1)$ worst-case time for queries. Using indirection we can improve the update to $\mathcal{O}(1)$ amortized time.\\
+
+We split the linked list into $\theta(N/\log{}N)$ sublists, each sublist of size $\theta(\log{}N)$. This creates a two-level data structure, the bottom level being the sublists and top level being nodes representing the sublists.\\
+
+The top level nodes form a linked list. Each node has a tag from the range $[0, N^2]$. The tags are ascending over the list, and the order of nodes corresponds to the original order of the sublists they represent.\\
+
+Each element in a sublist has a pointer to the node representing its sublist.
+Elements have \textit{local tags} from range $[0, N^2]$, that are ascending over their sublist.
+Local tags of elements in one sublist are independent of local tags of elements in other sublists.\\
+
+We introduce an additional invariant: after completing an update of the structure, each sublist has from $1$ up to $2\log{}N$ elements.\\
+
+The former invariant $N/2 <= n <= 2N$ should still be maintained. Violating the invariant initializes a rebuild of the structure, meaning assigning new $N = n$ and splitting the elements from sublists into $\theta(N/\log{}N)$ sublists, each sublist of size $\theta(\log{}N)$.
+
+\subsection{Insert operation \textit{Insert(X, Y)}}
+
+When inserting an element \textit{Y} immediately after element \textit{X}, we first check whether the sublist of \textit{X} would have over $2\log{}N$ elements after the insertion. If invariant would be violated, we split the sublist into 2 sublists of size $\log{}N$, items in each sublist are given new local tags, and a new node representing the new sublist is inserted into the top-level linked list.\\
+Then we insert Y after X in its sublist. If there is no available local tag, we relabel the subrange (see TODO link Relabeling subsection).\\
+Finally, if there are too many elements, we rebuild the structure (see TODO link invariant and rebuild subsection).
+
+\subsection{Delete operation \textit{Delete(X)}}
+
+When deleting an element from its sublist, we also need to check, whether this operation leaves the sublist empty. If so, we remove the node representative of the empty sublist.\\
+
+As before, if the number of elements is too small after the delete operation, we need to rebuild the structure.
+
+\subsection{Order operation \textit{Order(X, Y)}}
+
+When answering whether \textit{X} precedes \textit{Y}, we first solve the problem on the top-level list. We compare the tags of the nodes representing the sublists of given elements.\\
+If \textit{X} is from a sublist with a lower tag, then \textit{X} precedes \textit{Y}.\\
+If \textit{X} is from a sublist with a higher tag, then \textit{X} does not precede \textit{Y}.\\
+If \textit{X} and \textit{Y} are from the same sublist (i.e., tags of their sublist representative nodes are the same), we compare the local tags of \textit{X} and \textit{Y}. If \textit{X} has a lower local tag, then \textit{X} precedes \textit{Y}.
+
 
 \chapter{Solution B}
 
