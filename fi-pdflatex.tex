@@ -23,7 +23,7 @@
   nosansbold,  %% The `nosansbold` option prevents the use of the
                %% sans-serif type face for bold text. Replace with
                %% `sansbold` to use sans-serif type face for bold text.
-  nocolorbold, %% The `nocolorbold` option disables the usage of the
+  colorbold, %% The `nocolorbold` option disables the usage of the
                %% blue color for bold text, instead using black. Replace
                %% with `colorbold` to use blue for bold text.
   lof,         %% The `lof` option prints the List of Figures. Replace
@@ -94,6 +94,8 @@
 \usepackage{markdown} %% Lightweight markup
 \usepackage{listings} %% Source code highlighting
 \usepackage{algorithm2e}
+\usepackage{indentfirst} %% Added by me Julka
+\usepackage{hyperref} %% Added by me Julka
 \lstset{
   basicstyle      = \ttfamily,
   identifierstyle = \color{black},
@@ -121,132 +123,169 @@
 %% Unlike \chapter, \chapter* does not update the headings and does not
 %% enter the chapter to the table of contents. I we want correct
 %% headings and a table of contents entry, we must add them manually:
+
 \markright{\textsc{Introduction}}
 \addcontentsline{toc}{chapter}{Introduction}
 
-\chapter{Related problems}
+\chapter{Related Problems}
 
-\section{The ordered file maintenance problem}
-The \textbf{ordered file maintenance problem} is to maintain an array of N elements in O(N)
-space by having only O(1) size empty array-slot “gaps” between elements. [TODO citation Erik Demaine lec 20.]
+\textbf{The ordered file maintenance problem} is to store \textit{N} elements in an array of size $\mathcal{O}(N)$, in a specified order. Additionally, the gaps between elements must be $\mathcal{O}(1)$ elements wide.\cite{lecture8_notes} The structure must support the following operations:
+\begin{compactenum}
+  \item \textit{Insert (X, Y )}: Insert a new element \textit{Y} immediately after element \textit{X} in the
+array.
+    \item \textit{Delete (X)}: Remove an element \textit{X} from the array.
+\end{compactenum}
+The file-maintenance problem requires that the ordering
+of elements be preserved across operations.\cite{paper2_file_maintenance}\\
 
-\section{The order-maintenance problem}
-The \textbf{order-maintenance problem} is to maintain a total order subject to the
-following operations:\\
-
-1. \textbf{Insert (X, Y )}: Insert a new element \textit{Y} immediately after element \textit{X} in the
+\textbf{The order-maintenance problem} is to maintain a total order subject to the
+following operations:
+\begin{compactenum}
+    \item \textit{Insert (X, Y )}: Insert a new element \textit{Y} immediately after element \textit{X} in the
 total order.
+    \item \textit{Delete (X)}: Remove an element \textit{X} from the total order.
+    \item \textit{Order (X, Y)}: Determine whether \textit{X} precedes \textit{Y} in the total order.
+\end{compactenum}
+We call any such data structure an order data structure. \cite{paper1_ordered_list}\\
 
-2. \textbf{Delete (X)}: Remove an element \textit{X} from the total order.
+Notice that the Insert(X, Y) operation is not capable of inserting elements into an empty structure. The order-maintenance problem and the ordered file maintenance problem are only concerned with maintaining a non-empty set of elements.\\
 
-3. \textbf{Order (X, Y )}: Determine whether \textit{X} precedes \textit{Y} in the total order.
-
-We call any such data structure an order data structure. [TODO citation from Two Simplified Algorithms for Maintaining
-Order in a List]\\
-
-Notice that the Insert(X, Y) operation is not capable of inserting elements into an empty structure. The Order-maintenance problem is only concerned with maintaining a non-empty set of elements.
-
-
-\section{List-labeling problem}
-The \textbf{list-labeling problem} involves maintaining explicit (e.g., integer) labels in each node of a linked list. These labels should increase monotonically over the list. The data structure needs to support insertion between two labels and deletion of a label. [TODO citation lec8]
-Note that order(X, Y) can be implemented simply by comparing label(X) and label(Y) so that any solution to the list-labeling problem immediately gives a solution to the order-maintenance problem. [TODO citation wiki/Order-maintenance_problem#List_labeling]
-
+\textbf{The list-labeling problem} involves maintaining explicit (e.g., integer) labels in each node of a linked list. These labels should increase monotonically over the list. The data structure needs to support insertion between two labels and deletion of a label.
+\cite{lecture8_notes}
+Note that order(X, Y) can be implemented simply by comparing label(X) and label(Y) so that any solution to the list-labeling problem immediately gives a solution to the order-maintenance problem. \cite{wiki_order-maintenance_problem}
 
 \chapter{Solution A}
 
-From  [TODO citate Two Simplified Algorithms for Maintaining Order in a List by Bender, Cole,...] with implementation details inspired by [TODO citate https://en.wikipedia.org/wiki/Order-maintenance_problem].
+A solution to the ordered-file maintenance problem, presented in the research paper \textit{\citefield{paper1_ordered_list}{title}}\cite{paper1_ordered_list}, with implementation details inspired by the article
+\textit{\citefield{wiki_order-maintenance_problem}{title}}\cite{wiki_order-maintenance_problem}.
 
-\section{Solution A without indirection}
+\section{Solution A without Indirection}
 
-\subsection{Data structure description}
+\subsection{Data Structure Description}
+\label{sec:data-structure-desc-1}
 
 Solution A uses list-labeling to solve the order-maintenance problem.
 Inserted elements are kept in a linked list, where each element has been assigned an integer \textit{tag}. The tag values are strictly increasing over the list.\\
 
 Let \textit{n} be the current number of elements in the linked list.\\
 
-Let \textit{N} be the number of elements in the linked list at the time of the last \textit{rebuild}. The data structure is rebuilt whenever the invariant $N/2 <= n <= 2N$ is violated.\\
+Let \textit{N} be the number of elements in the linked list at the time of the last \textit{rebuild}.\\
 
-Let \textit{u} be the tag universe size and a power of 2. Elements have tags from the range $[0, \textit{u}]$. Whenever we rebuild the structure, we choose a new \textit{u} that works for any \textit{n} from the range $(N/2, 2N)$.\\
+Let \textit{u} be the tag universe size and a power of 2. Elements have tags from the range $[0, \textit{u}]$. Whenever we rebuild the structure, we choose a new 
 
-\textbf{Analogy with binary tree}\\
+\subsection{Rebuilding the Structure}
+\label{sec:rebuild-1}
 
-The bits of the tags implicitly form a binary tree, which is the \textit{trie} of the bit strings. The trie has depth log(\textit{u}). Each root-to-leaf path in the trie corresponds to the bits of the tag of the reached element. This trie is called the \textit{virtual tree}.\\
-When new elements are inserted into the linked list, they are assigned new tags, which translates to inserting new leaf nodes into the virtual tree.\\
-Each internal node of the virtual tree identifies a sublist of the linked list elements that are stored in leaf nodes of the subtree rooted in given internal node. Each leaf node has log u such enclosing tag ranges.\\
+The data structure is rebuilt whenever the invariant $N/2 <= n <= 2N$ is violated.\\
 
-\subsection{Insert operation \textit{Insert(X, Y)}}
+Rebuilding the structure means reassigning $N = n$ and choosing a new \textit{u} that works for any \textit{n} from the range $(N/2, 2N)$.
+
+\subsection{Analogy with Binary Tree}
+
+The bits of the tags implicitly form a binary tree, which is the \textit{trie} of the bit strings. The trie has depth log(\textit{u}). Each root-to-leaf path in the trie corresponds to the bits of the tag of the reached element. This trie is called the \textit{virtual tree}.
+
+When new elements are inserted into the linked list, they are assigned new tags, which translates to inserting new leaf nodes into the virtual tree.
+
+Each internal node of the virtual tree identifies a sublist of the linked list elements that are stored in leaf nodes of the subtree rooted in given internal node. Each leaf node has log u such enclosing tag ranges.
+
+\subsection{Insert(X, Y)}
 
 When we insert an element \textit{Y} immediately after element \textit{X}, we are free to choose any tag from the range \textit{(X.tag, Z.tag)}, where \textit{Z} is the first element in the linked list right after \textit{X}.
 
 If \textit{X} and \textit{Z} occupy adjacent leaves (their tags differ by 1), there are no available tags for the new element and we need to relabel a sublist of the linked list to make room for the new element.\\
 
-After the insert operation is complete, we rebuild the structure if there are too many elements (see [TODO link section DATA Structure Description]).\\
+After the insert operation is complete, we rebuild the structure if there are too many elements (see \hyperref[sec:rebuild-1]{2.1.2 Rebuilding the structure}).
 
-\textbf{Tag-range Relabeling Algorithm}\\
+\subsection{Tag-Range Relabeling Algorithm}
+\label{sec:relabeling}
 
-When relabeling while inserting element \textit{Y} between \textit{X} a \textit{Z}, we examine the enclosing tag ranges of X, going from smaller tag ranges to larger tag ranges, until we find the smallest tag range not in \textit{overflow}. The tag ranges increase in size geometrically. We calculate the density by traversing the elements within a certain tag range (instead of walking up the implicit tree).
+When relabeling while inserting element \textit{Y} between \textit{X} a \textit{Z}, we examine the enclosing tag ranges of X, going from smaller tag ranges to larger tag ranges, increasing their size geometrically, until we find the smallest tag range not in \textit{overflow}. We then assign new tags to elements in that tag range, distributing the elements evenly across the tag range.
 
-Let the \textit{density} of a \textit{tag range} be the fraction of occupied (already assigned) tags from the tag range.\\
+We only relabel the smallest range not in overflow, even though larger tag ranges might be in overflow.
 
-A tag range is in \textit{overflow}, if its density is above the \textit{overflow threshold}, which is defined as follows:\\
+A tag range is in \textit{overflow}, if its \textit{density} is above the \textit{overflow threshold}.\\
 
-Let T be a constant between 1 and 2. We calculate the threshold individually for each range based on its size:
+The \textit{density} of a \textit{tag range} is the fraction of occupied (already assigned) tags from the tag range. We calculate the density of a tag range by traversing the elements within that tag range (instead of walking up the implicit tree).\\
+
+We define the \textit{overflow threshold} as follows:
+
+Let \textit{T} be a constant between 1 and 2. We calculate the threshold individually for each range based on its size:
 
 1. For a leaf of the tree, which is a range of size $2^0 = 1$, the overflow threshold is defined as $T_0 = 1$.
 
 2. Otherwise, for ranges of size $2^i$, $T_i = T_{i-1} / T = T^{-1}$.
 
-We only relabel the smallest range not in overflow, even though larger tag ranges might be in overflow.
+\subsection{Choosing Tags for New Elements}
+\label{sec:choosing-new-tags}
 
-\subsection{Delete operation \textit{Delete(X)}}
+The paper presenting this structure \cite{paper1_ordered_list} experimentally compared 2 strategies for choosing tags for new elements:
+\begin{compactenum}
+  \item \textit{Consecutive Inserts}, which assigns a new element a tag equal to its predecessor + 1.
+  \item \textit{Average Inserts}, which assigns a new element a tag equal to the average of its neighbours.
+\end{compactenum}
+The results suggest, that the Average inserts strategy is a constant factor faster than the Consecutive inserts strategy.
 
-When deleting an element form the linked list, we perform the standard delete operation in a linked list we also check.
+\subsection{Delete(X)}
 
-After the delete operation is complete, we rebuild the structure if the number of elements is too small (see [TODO link section DATA Structure Description]).
+When deleting an element, we perform the standard delete operation on a linked list.\\
 
-\subsection{Order operation \textit{Order(X, Y)}}
-When deciding whether X precedes Y, since tag values increase as we traverse the linked list, we simply compare the tags of elements X and Y.\\
-If X has a lower tag than Y, then X precedes Y.\\
-If X has a higher tag than Y, then X does not precede Y.
+After the delete operation is complete, we rebuild the structure if the number of elements is too small (see \hyperref[sec:rebuild-1]{2.1.2 Rebuilding the structure}).
 
-\section{Solution A with indirection}
+\subsection{Order(X, Y)}
 
-\subsection{Data structure description}
+When deciding whether \textit{X} precedes \textit{Y}, since tag values increase as we traverse the linked list, we simply compare the tags of elements \textit{X} and \textit{Y}. If \textit{X} has a lower tag than \textit{Y}, then \textit{X} precedes \textit{Y}. If \textit{X} has a higher tag than \textit{Y}, then \textit{X} does not precede \textit{Y}.
 
-The solution A as described above takes $\mathcal{O}(\log{}n)$ amortized time to update and $\mathcal{O}(1)$ worst-case time for queries. Using indirection we can improve the update to $\mathcal{O}(1)$ amortized time.\\
+\subsection{Time Complexity}
+
+Solution A as described in this section takes $\mathcal{O}(\log{}n)$ amortized time to update (insert and delete operations) and $\mathcal{O}(1)$ worst-case time for order queries \cite{paper1_ordered_list}.
+
+\section{Solution A with Indirection}
+
+\subsection{Data Structure Description}
+\label{sec:data-structure-desc-2}
+
+Using indirection we can improve the time complexity of update operations to $\mathcal{O}(1)$ amortized time.\\
 
 We split the linked list into $\theta(N/\log{}N)$ sublists, each sublist of size $\theta(\log{}N)$. This creates a two-level data structure, the bottom level being the sublists and top level being nodes representing the sublists.\\
 
 The top level nodes form a linked list. Each node has a tag from the range $[0, N^2]$. The tags are ascending over the list, and the order of nodes corresponds to the original order of the sublists they represent.\\
 
-Each element in a sublist has a pointer to the node representing its sublist.
-Elements have \textit{local tags} from range $[0, N^2]$, that are ascending over their sublist.
-Local tags of elements in one sublist are independent of local tags of elements in other sublists.\\
+Each element in a sublist has a pointer to the node representing its sublist. Elements have \textit{local tags} from range $[0, N^2]$, that are ascending over their sublist. Local tags of elements in one sublist are independent of local tags of elements in other sublists.\\
 
-We introduce an additional invariant: after completing an update of the structure, each sublist has from $1$ up to $2\log{}N$ elements.\\
+We introduce an additional invariant: after completing an update of the structure, each sublist has from $1$ up to $2\log{}N$ elements.
 
-The former invariant $N/2 <= n <= 2N$ should still be maintained. Violating the invariant initializes a rebuild of the structure, meaning assigning new $N = n$ and splitting the elements from sublists into $\theta(N/\log{}N)$ sublists, each sublist of size $\theta(\log{}N)$.
+\subsection{Rebuilding the Structure}
+\label{sec:rebuild-2}
 
-\subsection{Insert operation \textit{Insert(X, Y)}}
+The former invariant $N/2 <= n <= 2N$ should still be maintained. Violating the invariant initializes a rebuild of the structure, which includes reassigning $N = n$ and splitting all the elements evenly into $\theta(N/\log{}N)$ sublists, each sublist of size $\theta(\log{}N)$.
 
-When inserting an element \textit{Y} immediately after element \textit{X}, we first check whether the sublist of \textit{X} would have over $2\log{}N$ elements after the insertion. If invariant would be violated, we split the sublist into 2 sublists of size $\log{}N$, items in each sublist are given new local tags, and a new node representing the new sublist is inserted into the top-level linked list.\\
-Then we insert Y after X in its sublist. If there is no available local tag, we relabel the subrange (see TODO link Relabeling subsection).\\
-Finally, if there are too many elements, we rebuild the structure (see TODO link invariant and rebuild subsection).
+\subsection{Insert(X, Y)}
 
-\subsection{Delete operation \textit{Delete(X)}}
+When inserting an element \textit{Y} immediately after element \textit{X}, we first check whether the sublist of \textit{X} would have over $2\log{}N$ elements after the insertion. If the invariant would be violated, we split the sublist into 2 sublists of size $\log{}N$. Items in each sublist are given new local tags. A new node representing the new sublist is inserted into the top-level linked list.\\
+
+After making sure the invariant will not be violated, we insert Y after X in its sublist. If there is no available local tag, we relabel (see \hyperref[sec:relabeling]{2.1.5 Tag-Range Relabeling Algorithm}).\\
+
+Finally, if there are too many elements, we rebuild the structure (see \hyperref[sec:rebuild-1]{2.2.2 Rebuilding the structure}).
+
+\subsection{Delete(X)}
 
 When deleting an element from its sublist, we also need to check, whether this operation leaves the sublist empty. If so, we remove the node representative of the empty sublist.\\
 
-As before, if the number of elements is too small after the delete operation, we need to rebuild the structure.
+As before, if the number of elements is too small after the delete operation, we need to rebuild the structure (see \hyperref[sec:rebuild-1]{2.2.2 Rebuilding the structure}).
 
-\subsection{Order operation \textit{Order(X, Y)}}
+\subsection{Order(X, Y)}
 
-When answering whether \textit{X} precedes \textit{Y}, we first solve the problem on the top-level list. We compare the tags of the nodes representing the sublists of given elements.\\
-If \textit{X} is from a sublist with a lower tag, then \textit{X} precedes \textit{Y}.\\
-If \textit{X} is from a sublist with a higher tag, then \textit{X} does not precede \textit{Y}.\\
-If \textit{X} and \textit{Y} are from the same sublist (i.e., tags of their sublist representative nodes are the same), we compare the local tags of \textit{X} and \textit{Y}. If \textit{X} has a lower local tag, then \textit{X} precedes \textit{Y}.
+When answering whether \textit{X} precedes \textit{Y}, we first solve the problem on the top-level list. We compare the tags of the nodes representing the sublists of given elements.
 
+If \textit{X} is from a sublist with a lower tag, then \textit{X} precedes \textit{Y}.
+
+If \textit{X} is from a sublist with a higher tag, then \textit{X} does not precede \textit{Y}.
+
+If \textit{X} and \textit{Y} are from the same sublist (i.e., tags of the nodes representing their sublists are the same), we compare the local tags of \textit{X} and \textit{Y}. If \textit{X} has a lower local tag, then \textit{X} precedes \textit{Y}. Otherwise, \textit{X} does not precede \textit{Y}.
+
+\subsection{Time Complexity}
+
+Using indirection we get update operations (insert, delete) with the time complexity $\mathcal{O}(1)$ amortized time and keep the $\mathcal{O}(1)$ worst-case time for order queries \cite{paper1_ordered_list}.\\
 
 \chapter{Solution B}
 
@@ -370,11 +409,11 @@ belong to the previous footnote.
     multi-paragraph list items.
 
 Citations are used to provide bibliographical references to other
-documents. This is a regular citation~[@borgman03, p. 123]. This is
-an in-text citation: @borgman03\. You can also cite several authors
-at once using both regular~[see @borgman03, p. 123; @greenberg98,
-sec.  3.2; and @thanh01] and in-text citations: @borgman03 [p.123;
-@greenberg98, sec. 3.2; @thanh01].
+documents. This is a regular citation~[@paper1_ordered_list, p. 123]. This is
+an in-text citation: @paper1_ordered_list\. You can also cite several authors
+at once using both regular~[see @paper1_ordered_list, p. 123; @paper1_ordered_list,
+sec.  3.2; and @paper1_ordered_list] and in-text citations: @paper1_ordered_list [p.123;
+@paper1_ordered_list, sec. 3.2; @paper1_ordered_list].
 
 Code blocks are used to include source code listings into the
 document:
@@ -707,16 +746,16 @@ After linking a bibliography data\-base files to the document using
 the \verb"\"\texttt{thesis\discretionary{-}{}{}setup\{bib\discretionary{=}{=}{=}%
 \{\textit{file1},\textit{file2},\,\ldots\,\}\}} command, you can
 start citing the entries. This is just dummy text
-\parencite{borgman03} lightly sprinkled with citations
-\parencite[p.~123]{greenberg98}. Several sources can be cited at
-once: \cite{borgman03,greenberg98,thanh01}.
-\citetitle{greenberg98} was written by \citeauthor{greenberg98} in
-\citeyear{greenberg98}. We can also produce \textcite{greenberg98}%
+\parencite{paper1_ordered_list} lightly sprinkled with citations
+\parencite[p.~123]{paper1_ordered_list}. Several sources can be cited at
+once: \cite{paper1_ordered_list,paper2_file_maintenance,wiki_order-maintenance_problem}.
+\citetitle{paper1_ordered_list} was written by \citeauthor{paper1_ordered_list} in
+\citeyear{paper1_ordered_list}. We can also produce \textcite{paper1_ordered_list}%
 \ or %% Let us define a compound command:
 \def\citeauthoryear#1{(\textcite{#1},~\citeyear{#1})}%
-\citeauthoryear{greenberg98}%
+\citeauthoryear{paper2_file_maintenance}%
 . The full bibliographic citation is:
-\emph{\fullcite{greenberg98}}. We can easily insert a bibliographic
+\emph{\fullcite{paper1_ordered_list}}. We can easily insert a bibliographic
 citation into the footnote\footfullcite{greenberg98}.
 
 The \verb"\nocite" command will not generate any
