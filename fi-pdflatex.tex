@@ -127,29 +127,29 @@
 \chapter{Related problems}
 
 \section{The ordered file maintenance problem}
-The \textit{Ordered File Maintenance problem} is to maintain an array of N elements in O(N)
+The \textbf{ordered file maintenance problem} is to maintain an array of N elements in O(N)
 space by having only O(1) size empty array-slot “gaps” between elements. [TODO citation Erik Demaine lec 20.]
 
 \section{The order-maintenance problem}
-The \textit{Order-Maintenance Problem} is to maintain a total order subject to the
+The \textbf{order-maintenance problem} is to maintain a total order subject to the
 following operations:\\
 
-1. \textit{Insert (X, Y )}: Insert a new element \textit{Y} immediately after element \textit{X} in the
+1. \textbf{Insert (X, Y )}: Insert a new element \textit{Y} immediately after element \textit{X} in the
 total order.
 
-2. \textit{(Delete (X)}: Remove an element \textit{X} from the total order.
+2. \textbf{Delete (X)}: Remove an element \textit{X} from the total order.
 
-3. \textit{Order (X, Y )}: Determine whether \textit{X} precedes \textit{Y} in the total order.
+3. \textbf{Order (X, Y )}: Determine whether \textit{X} precedes \textit{Y} in the total order.
 
 We call any such data structure an order data structure. [TODO citation from Two Simplified Algorithms for Maintaining
 Order in a List]\\
 
-Notice that the Insert operation is not capable of inserting elements into an empty structure. The Order-maintenance problem is only concerned with maintaining a non-empty set of elements.
+Notice that the Insert(X, Y) operation is not capable of inserting elements into an empty structure. The Order-maintenance problem is only concerned with maintaining a non-empty set of elements.
 
 
 \section{List-labeling problem}
-The list-labeling problem  involves maintaining explicit (e.g., integer) labels in each node of a linked list. These labels should increase monotonically over the list. The data structure needs to support insertion between two labels and deletion of a label. [TODO citation lec8]
-Note that order(X, Y) can be implemented simply by comparing label(X) and label(Y) so that any solution to the list-labeling problem immediately gives one to the order-maintenance problem. [TODO citation wiki/Order-maintenance_problem#List_labeling]
+The \textbf{list-labeling problem} involves maintaining explicit (e.g., integer) labels in each node of a linked list. These labels should increase monotonically over the list. The data structure needs to support insertion between two labels and deletion of a label. [TODO citation lec8]
+Note that order(X, Y) can be implemented simply by comparing label(X) and label(Y) so that any solution to the list-labeling problem immediately gives a solution to the order-maintenance problem. [TODO citation wiki/Order-maintenance_problem#List_labeling]
 
 
 \chapter{Solution A}
